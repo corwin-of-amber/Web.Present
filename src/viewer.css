@@ -1,0 +1,32 @@
+body {
+  overflow: hidden;
+  height: calc(100vh - 16px);
+  text-align: center;
+}
+
+canvas {
+  outline: 1px solid black;
+}
+
+div.overlay {
+  position: absolute;
+}
+
+.overlay .annotation {
+  position: absolute;
+  user-select: none;
+  cursor: pointer;
+}
+.overlay .annotation .centered {
+  margin-left: -50%;
+  margin-top: -50%;
+  display: block;
+}
+
+.overlay .annotation .circle {
+  border-radius: 99px;
+  border: 2px solid red;
+  height: 20px;
+  width: 20px;
+}
+

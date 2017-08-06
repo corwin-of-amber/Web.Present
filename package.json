@@ -1,0 +1,12 @@
+{
+  "name": "web-present",
+  "main": "src/index.html",
+  "scripts": {
+    "start": "nw .&"
+  },
+  "dependencies": {
+    "eventemitter-browser": "0.0.1",
+    "jquery": "^2.2.1",
+    "prelude-ls": "^1.1.2"
+  }
+}
