@@ -39,26 +39,52 @@ export pc
 class PresenterUI
 
   (@container-element ? $('body')) ->
+    @overlay = new Overlay $ 'body'  # note: overlay should come first #sorry
     @img = $ '<img>' .attr 'src' "http://#{host}/image-#{Math.random!}.png"
       ..append-to @container-element
-    $(window).on 'resize' ~>
-      @img.height @container-element.height!
-      @img.width @container-element.width!
+    @img-aspect-ratio = undefined
+    @use-touch = false
+    @img.on 'load' ~> console.log @img.0.naturalWidth; @fit-in-window!
+    $(window).on 'resize' ~> @fit-in-window!
+
+  fit-in-window: ->
+    aspect-ratio = @img.0.naturalWidth / @img.0.naturalHeight
+    [w, h] = [@container-element.width!, @container-element.height!]
+    @img.height Math.min h, w / aspect-ratio
+    @img.width Math.min w, aspect-ratio * h
+    @overlay.cover @img
+    @overlay.set-state @overlay.get-state!
+
+  put: ->
+    $.ajax do
+      url: "http://#{host}/overlay.json"
+      method: 'POST'
+      contentType: 'application/json'
+      data: JSON.stringify(@overlay.get-state!)
 
   refresh: ->
     @img.attr 'src' "http://#{host}/image-#{Math.random!}.png"
+    $.get "http://#{host}/overlay.json" .then ~>
+      @overlay.set-state it
 
 
 $ ->
   ui = new PresenterUI
 
   pc.on 'refresh' ui~refresh
-  #ui.img.mousedown ->
-  #  pc.ws.send 'next'
+  ui.img.mousedown (ev) ->
+    if !ui.use-touch
+      if ev.button == 2 && $(ev.target).is('img')  # right button
+        ui.overlay.add-annotation ev.offsetX, ev.offsetY
+        ui.put!
+      else
+        pc.ws.send 'next'
+
+  $ 'body' .contextmenu (.preventDefault!)
 
   ui.img.on 'touchstart' ->
+    ui.use-touch = true
     pc.ws.send 'next'
-
     ui.img.css 'border' '1px solid black'
     setTimeout -> ui.img.css 'border' 'none'
     , 1000
@@ -69,4 +95,3 @@ $ ->
 
 
   export ui
-

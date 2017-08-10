@@ -29,17 +29,17 @@ class ViewerCore extends EventEmitter
         canvasContext: ctx
         viewport: viewport
       .then ~>
-        canvas.0.toBlob (@blob) ~> @emit('rendered')
+      #  canvas.0.toBlob (@blob) ~> @emit('rendered')
         canvas
 
   goto-page: (page-num) ->
     @selected-page = page-num
     @canvas[page-num] ?= @render-page(page-num)
-      ..then ~> @containing-element
-        console.log it
+      ..then (canvas) ~> @containing-element
         ..find 'canvas' .remove!
-        ..append it
-        @emit 'displayed' it
+        ..append canvas
+        @blob <~ canvas.0.toBlob
+        @emit 'displayed' canvas
 
   flush: -> @canvas = {}
 
@@ -54,28 +54,39 @@ Nav =   # mixin
     if @selected-page > 1
       @goto-page --@selected-page
 
+Annotate =   # mixin
+  annotate-start: ->
+    @overlay = new Overlay @containing-element
+    @page-overlay-state = {}
+    @on 'displayed' (canvas) ~>
+      @overlay.cover canvas
+      @overlay.set-state @page-overlay-state[@selected-page] ? []
+    @containing-element.mousedown (ev) !~>
+      if ev.button == 2 && $(ev.target).is('canvas')  # right button
+        @overlay.add-annotation ev.offsetX, ev.offsetY
+        @annotate-changed!
+
+  annotate-changed: ->
+    @page-overlay-state[@selected-page] = @overlay.get-state!
+    server.broadcast "refresh"
 
 
 class Viewer extends ViewerCore
 
-Viewer.prototype <<<< Nav
+Viewer.prototype <<<< Nav <<<< Annotate
 
 
 $ ->
-  overlay = new Overlay $ 'body'
-
-  export overlay
-
   PDFJS.getDocument(URI).then (pdf) ->
     viewer = new Viewer(pdf)
-      ..on 'rendered' -> server.broadcast "refresh"
-      ..on 'displayed' (canvas) ->
+      ..annotate-start!
+      ..on 'displayed' -> server.broadcast "refresh"
       ..goto-page 1
       $ 'body' .click -> ..next-page!
-      $ 'body' .mousedown (ev) !->
-        console.log ev.button
-        if ev.button == 2 && $(ev.target).is('canvas')  # right button
-          overlay.add-annotation ev.offsetX, ev.offsetY
+      $ 'body' .keydown (ev) ->
+        switch ev.key
+          case "ArrowRight" => ..next-page!
+          case "ArrowLeft" => ..prev-page!
       $(window).resize -> ..refresh!
 
       $ 'body' .on 'contextmenu'/*, 'canvas'*/,  (.preventDefault!)

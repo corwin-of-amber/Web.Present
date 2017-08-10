@@ -2,6 +2,7 @@ http = require 'http'
 blob-to-buffer = require '../lib/blob-to-buffer'
 WebSocketServer = require 'websocket' .server
 stoppable = require 'stoppable'
+JSONStream = require 'JSONStream'
 
 
 
@@ -46,27 +47,45 @@ class Server
 
 
   serve: (request, response) ->
-    console.log(request)
-    process.stderr.write("[server]  #{request.url}")
+    #console.log(request)
+    #process.stderr.write("[server]  #{request.url}")
     switch request.url
     case "/" =>
       response
         ..writeHead 200, { 'Content-Type': 'text/html' } <<< NO_CACHE
         ..write '''<script src="jquery.js"></script><script src="EventEmitter.js"></script>
                    <script src="client.ls.js"></script>
-                   <link rel="stylesheet" type="text/css" href="client.css">
+                   <link rel="stylesheet" type="text/css" href="viewer.css">
                    <body></body>'''
         ..end!
     case "/client.ls.js" => @serve-static(response, "src/client.ls.js")
+    case "/overlay.ls.js" => @serve-static(response, "src/overlay.ls.js")
     case "/jquery.js" => @serve-static(response, "node_modules/jquery/dist/jquery.js")
     case "/EventEmitter.js" => @serve-static(response, "node_modules/eventemitter-browser/EventEmitter.js")
-    case "/client.css" => @serve-static(response, "src/client.css")
+    case "/viewer.css" => @serve-static(response, "src/viewer.css")
+    case "/overlay.json" =>
+      switch request.method
+        case "GET" => @serve-json(response, viewer.overlay.get-state!)
+        case "POST" =>
+          # NOTICE This tends to CRASH AND BURN (segfault) when an exception
+          #   escapes the event handler  :\ O_o
+          request.pipe(JSONStream.parse()).on 'data' ->
+            try
+              viewer.overlay.set-state it
+              viewer.annotate-changed!
+            catch e
+              console.error e
     else
       @serve-image response
-    #fs.createReadStream("./src/index.html").pipe(response)
 
   serve-static: (response, local-filename) ->
     fs.createReadStream(local-filename).pipe(response)
+
+  serve-json: (response, obj) ->
+    response
+      ..writeHead 200, { 'Content-Type': 'application/json' } <<< NO_CACHE
+      ..write JSON.stringify(obj)
+      ..end!
 
   serve-image: (response) ->
     blob = viewer.blob
@@ -93,7 +112,7 @@ class Server
       ..on 'close' (reason, desc) ~> @disconnected .., reason, desc
 
   handle: (message) ->
-    console.log message
+    #console.log message
     if message.utf8Data == 'next'
       viewer.next-page!
 
