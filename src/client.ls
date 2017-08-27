@@ -22,7 +22,7 @@ class PresentConn extends EventEmitter
     console.log "Connected to server.", ev
 
   handle: (ev) ->
-    console.log "Message", ev
+    #console.log "Message", ev
     @emit 'refresh'
 
   disconnected: (ev) ->
@@ -43,9 +43,19 @@ class PresenterUI
     @img = $ '<img>' .attr 'src' "http://#{host}/image-#{Math.random!}.png"
       ..append-to @container-element
     @img-aspect-ratio = undefined
+    @toolbar = @create-toolbar!append-to @container-element
     @use-touch = false
-    @img.on 'load' ~> console.log @img.0.naturalWidth; @fit-in-window!
+    @img.on 'load' ~> @fit-in-window!
     $(window).on 'resize' ~> @fit-in-window!
+
+  create-toolbar: ->
+    $ '<div>' .add-class 'toolbar'
+        ..append ($ '<button>' .attr \id 'clear' .text '⊘')
+        ..append ($ '<button>' .attr \id 'prev' .text '◀︎')
+        ..append ($ '<button>' .attr \id 'next' .text '▶︎')
+        ..append ($ '<button>' .attr \id 'reload' .text '⟳')
+        ..on 'click' '#clear' ~> @overlay.clear!; @put!
+        ..on 'click' '#reload' -> window.location.reload!
 
   fit-in-window: ->
     aspect-ratio = @img.0.naturalWidth / @img.0.naturalHeight
@@ -82,16 +92,26 @@ $ ->
 
   $ 'body' .contextmenu (.preventDefault!)
 
-  ui.img.on 'touchstart' ->
+  ui.img.on 'touchstart' (ev) ->
     ui.use-touch = true
-    pc.ws.send 'next'
-    ui.img.css 'border' '1px solid black'
-    setTimeout -> ui.img.css 'border' 'none'
+    rect = ev.originalEvent.target.getBoundingClientRect()
+    for touch in ev.originalEvent.targetTouches
+      ui.overlay.add-annotation-client touch.pageX - rect.left, touch.pageY - rect.top
+    ui.put!
+    #pc.ws.send 'next'
+    ui.img.add-class 'touched'
+    setTimeout -> ui.img.remove-class 'touched'
     , 1000
-  ui.img.on 'touchend' ->
-    ui.img.css 'border' 'none'
-  ui.img.on 'touchcancel' ->
-    ui.img.css 'border' 'none'
+  ui.img.on 'touchend'    -> ui.img.remove-class 'touched'
+  ui.img.on 'touchcancel' -> ui.img.remove-class 'touched'
 
+  ui.toolbar.on 'click' '#next' -> pc.ws.send 'next'
+  ui.toolbar.on 'click' '#prev' -> pc.ws.send 'prev'
+
+  window.onmessage = ->
+    if it.data == "\x3f\x3e\x3d"   /* 61,62,63 */
+      pc.ws.send 'prev'
+    else
+      pc.ws.send 'next'
 
   export ui

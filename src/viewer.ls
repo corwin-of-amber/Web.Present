@@ -2,7 +2,6 @@
 
 
 
-URI = "/bower_components/pdfjs/examples/helloworld/helloworld.pdf"
 URI = "../data/01-intro.pdf"
 
 
@@ -21,7 +20,6 @@ class ViewerCore extends EventEmitter
       @containing-element
         scale = Math.min(..height! / viewport.height, ..width! / viewport.width)
       viewport = page.getViewport(scale)
-      console.log viewport
       ctx = canvas.0.getContext('2d')
       canvas.0.width = viewport.width ; canvas.0.height = viewport.height
 
@@ -46,7 +44,38 @@ class ViewerCore extends EventEmitter
   refresh: -> @flush! ; if @selected-page then @goto-page that
 
 
+/**
+ * Builds an index of page number -> slide number, based on a heuristic
+ * that slide number captions exist on (most) pages and do not move
+ * during build animations.
+ */
+SlideIndex =   # mixin
+  prepare-slide-index: ->
+    pages = [@pdf.getPage(i) for i from 1 to @pdf.numPages]
+    slide-index = {}
+    pages.reduce (promise, page) ->
+      promise.then (prev) -> page.then (page) ->
+        page.getTextContent!then ({items: text-items}) ->
+          old-witnesses = text-items.filter ((x) -> prev.possible-captions.some (=== x))
+          new-witnesses = text-items.filter (.str ~= prev.slide-num + 1)
+          slide-num = if old-witnesses.length then prev.slide-num else prev.slide-num + 1
+          possible-captions = if old-witnesses.length then old-witnesses else new-witnesses
+          slide-index[page.pageNumber] = slide-num
+          {slide-num, possible-captions}
+    , Promise.resolve slide-num: 0, possible-captions: []
+    .then ~> @slide-index = slide-index
+
 Nav =   # mixin
+  nav-bind-ui: ->
+    $ 'body' .click ~> @next-page!
+    $ 'body' .keydown (ev) ~>
+      switch ev.key
+        case "ArrowRight" => @next-page!
+        case "ArrowLeft" => @prev-page!
+    @on 'close' ->
+      $ 'body' .off 'click'    /* @@@ removing all handlers */
+      $ 'body' .off 'keydown'
+
   next-page: ->
     @goto-page ++@selected-page
 
@@ -60,7 +89,8 @@ Annotate =   # mixin
     @page-overlay-state = {}
     @on 'displayed' (canvas) ~>
       @overlay.cover canvas
-      @overlay.set-state @page-overlay-state[@selected-page] ? []
+      slide-num = @slide-index?[@selected-page] ? @selected-page
+      @overlay.set-state @page-overlay-state[slide-num] ? []
     @containing-element.mousedown (ev) !~>
       if ev.button == 2 && $(ev.target).is('canvas')  # right button
         @overlay.add-annotation ev.offsetX, ev.offsetY
@@ -73,24 +103,33 @@ Annotate =   # mixin
 
 class Viewer extends ViewerCore
 
-Viewer.prototype <<<< Nav <<<< Annotate
+Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate
 
 
-$ ->
-  PDFJS.getDocument(URI).then (pdf) ->
-    viewer = new Viewer(pdf)
+viewer = undefined
+
+Viewer.open = (uri) ->
+  viewer?emit 'close'
+  PDFJS.getDocument(uri).then (pdf) ->
+    viewer := new Viewer(pdf)
       ..annotate-start!
+      ..nav-bind-ui!
+      ..prepare-slide-index!
       ..on 'displayed' -> server.broadcast "refresh"
       ..goto-page 1
-      $ 'body' .click -> ..next-page!
-      $ 'body' .keydown (ev) ->
-        switch ev.key
-          case "ArrowRight" => ..next-page!
-          case "ArrowLeft" => ..prev-page!
       $(window).resize -> ..refresh!
+      ..on 'close' -> $(window).off 'resize'
 
-      $ 'body' .on 'contextmenu'/*, 'canvas'*/,  (.preventDefault!)
+    localStorage.last-uri = uri
 
     export viewer
 
-    window.open('/src/client.html', 'client')
+
+export Viewer, viewer
+
+
+$ ->
+  $ 'body' .on 'contextmenu'/*, 'canvas'*/,  (.preventDefault!)
+  Viewer.open(localStorage.last-uri ? URI)
+
+  window.open('/src/client.html', 'client')

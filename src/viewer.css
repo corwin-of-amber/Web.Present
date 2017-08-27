@@ -29,3 +29,15 @@ div.overlay {
   height: 20px;
   width: 20px;
 }
+
+div.toolbar {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  right: 0;
+  top: 0;
+}
+
+img.touched {
+  outline: 1px solid blue;
+}

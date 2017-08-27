@@ -55,6 +55,7 @@ class Server
         ..writeHead 200, { 'Content-Type': 'text/html' } <<< NO_CACHE
         ..write '''<script src="jquery.js"></script><script src="EventEmitter.js"></script>
                    <script src="client.ls.js"></script>
+                   <script src="overlay.ls.js"></script>
                    <link rel="stylesheet" type="text/css" href="viewer.css">
                    <body></body>'''
         ..end!
@@ -88,7 +89,7 @@ class Server
       ..end!
 
   serve-image: (response) ->
-    blob = viewer.blob
+    blob = viewer?blob
     if !blob?
       response.end!
     else
@@ -105,7 +106,7 @@ class Server
 
   connected: (ws-request) ->
     ws-request.accept('present-protocol', ws-request.origin)
-      console.log ws-request
+      #console.log ws-request
       console.log "#{..remoteAddress} connected"
       @sessions[_idcnt++] = ..
       ..on 'message' @~handle
@@ -113,8 +114,9 @@ class Server
 
   handle: (message) ->
     #console.log message
-    if message.utf8Data == 'next'
-      viewer.next-page!
+    switch message.utf8Data
+      case 'next' => viewer.next-page!
+      case 'prev' => viewer.prev-page!
 
   disconnected: (conn, reason, desc) ->
     console.log "#{conn.remoteAddress} disconnected (#{reason} #{desc})"

@@ -28,6 +28,13 @@ class Overlay
       @annotations.push {x: @normx(x), y: @normy(y), classes, $el: ..}
       @div.append ..
 
+  add-annotation-client: (x, y, classes=['centered', 'circle']) ->
+    $ '<a>' .add-class 'annotation'
+      ..offset {left: x, top: y}
+      ..append @_create-inner classes
+      @annotations.push {x: @normx(x - @box.left), y: @normy(y - @box.top), classes, $el: ..}
+      @div.append ..
+
   add-annotation-norm: (x, y, classes=['centered', 'circle']) ->
     $ '<a>' .add-class 'annotation'
       ..offset {left: @denormx(x) + @box.left, top: @denormy(y) + @box.top}
