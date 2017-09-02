@@ -30,6 +30,26 @@ div.overlay {
   width: 20px;
 }
 
+.overlay .annotation .star {
+  background: url(../img/star.png);
+  background-size: contain;
+  background-repeat: none;
+  height: 20px;
+  width: 20px;
+}
+
+.overlay .annotation .finger-left {
+  background: url(../img/finger-left.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  height: 30px;
+  width: 30px;
+  /* align so that finger tip is at top-left */
+  margin-left: -5%;
+  margin-top: -40%;
+  display: block;
+}
+
 div.toolbar {
   position: absolute;
   display: flex;
@@ -40,4 +60,16 @@ div.toolbar {
 
 img.touched {
   outline: 1px solid blue;
+}
+
+img#tool {
+  width: 16pt;
+}
+
+img#tool.laser {
+  content: url(../img/finger-left.png);
+}
+
+img#tool.marker {
+  content: url(../img/star.png);
 }

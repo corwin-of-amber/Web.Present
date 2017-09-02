@@ -2,5 +2,6 @@
 /bower_components
 *.ls.js
 .*.sw?
+.DS_Store
 src/index.html
 src/client.html

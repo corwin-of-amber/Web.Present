@@ -54,8 +54,10 @@ class PresenterUI
         ..append ($ '<button>' .attr \id 'prev' .text '◀︎')
         ..append ($ '<button>' .attr \id 'next' .text '▶︎')
         ..append ($ '<button>' .attr \id 'reload' .text '⟳')
+        ..append ($ '<img>' .attr \id 'tool' .add-class 'laser')
         ..on 'click' '#clear' ~> @overlay.clear!; @put!
         ..on 'click' '#reload' -> window.location.reload!
+        ..on 'click' '#tool' ~> @rotate-tool!
 
   fit-in-window: ->
     aspect-ratio = @img.0.naturalWidth / @img.0.naturalHeight
@@ -77,6 +79,26 @@ class PresenterUI
     $.get "http://#{host}/overlay.json" .then ~>
       @overlay.set-state it
 
+  rotate-tool: ->
+    tool = @toolbar.find '#tool'
+    next = switch
+      | tool.has-class('laser') => 'marker'
+      | otherwise => 'laser'
+    [tool.remove-class .. for ['laser', 'marker']]
+    tool.add-class next
+
+  apply-tool: (x, y) ->
+    tool = @toolbar.find '#tool'
+    switch
+    | tool.has-class('laser') =>
+      ui.overlay.remove-annotations 'finger-left'
+      ui.overlay.add-annotation x, y, ['finger-left']
+    | tool.has-class('marker') =>
+      ui.overlay.add-annotation x, y, ['centered', 'star']
+
+    ui.put!
+
+
 
 $ ->
   ui = new PresenterUI
@@ -84,9 +106,8 @@ $ ->
   pc.on 'refresh' ui~refresh
   ui.img.mousedown (ev) ->
     if !ui.use-touch
-      if ev.button == 2 && $(ev.target).is('img')  # right button
-        ui.overlay.add-annotation ev.offsetX, ev.offsetY
-        ui.put!
+      if ev.button == 2 && $(ev.target).is(ui.img)  # right button
+        ui.apply-tool ev.offsetX, ev.offsetY
       else
         pc.ws.send 'next'
 
