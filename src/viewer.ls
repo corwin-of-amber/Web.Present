@@ -97,7 +97,8 @@ Annotate =   # mixin
         @annotate-changed!
 
   annotate-changed: ->
-    @page-overlay-state[@selected-page] = @overlay.get-state!
+    slide-num = @slide-index?[@selected-page] ? @selected-page
+    @page-overlay-state[slide-num] = @overlay.get-state!
     server.broadcast "refresh"
 
 

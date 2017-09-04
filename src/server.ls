@@ -68,14 +68,14 @@ class Server
       switch request.method
         case "GET" => @serve-json(response, viewer.overlay.get-state!)
         case "POST" =>
+          caught = (op) -> -> try op ... catch e => console.error e
           # NOTICE This tends to CRASH AND BURN (segfault) when an exception
           #   escapes the event handler  :\ O_o
-          request.pipe(JSONStream.parse()).on 'data' ->
-            try
-              viewer.overlay.set-state it
-              viewer.annotate-changed!
-            catch e
-              console.error e
+          request.pipe(JSONStream.parse()).on 'data' caught ->
+            viewer.overlay.set-state it
+            viewer.annotate-changed!
+          .on 'end' ->
+            response.end!
     else
       @serve-image response
 
