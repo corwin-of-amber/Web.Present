@@ -40,7 +40,7 @@ class PresenterUI
 
   (@container-element ? $('body')) ->
     @overlay = new Overlay $ 'body'  # note: overlay should come first #sorry
-    @img = $ '<img>' .attr 'src' "http://#{host}/image-#{Math.random!}.png"
+    @img = $ '<img>' .attr 'src' "http://#{host}/image.png" #-#{Math.random!}.png"
       ..append-to @container-element
     @img-aspect-ratio = undefined
     @toolbar = @create-toolbar!append-to @container-element
@@ -75,9 +75,19 @@ class PresenterUI
       data: JSON.stringify(@overlay.get-state!)
 
   refresh: ->
-    @img.attr 'src' "http://#{host}/image-#{Math.random!}.png"
+    # preload to avoid flicker
+    @preload-image "http://#{host}/image.png" .then ~>
+      @img.attr 'src' it
     $.get "http://#{host}/overlay.json" .then ~>
       @overlay.set-state it
+
+  preload-image: (img-src) ->  /* returns a Promise to a data URI (common recipe) */
+    new Promise (resolve, reject) -> new Image
+      ..onload = -> document.createElement 'canvas'
+        [..width, ..height] = [@naturalWidth, @naturalHeight]
+        ..getContext('2d').drawImage @, 0, 0
+        resolve ..toDataURL('image/png')
+      ..src = img-src
 
   rotate-tool: ->
     tool = @toolbar.find '#tool'
@@ -115,7 +125,9 @@ $ ->
 
   ui.img.on 'touchstart' (ev) ->
     ui.use-touch = true
-    rect = ev.originalEvent.target.getBoundingClientRect()
+    #rect = ev.originalEvent.target.getBoundingClientRect()
+    # NOTICE Unlike mouse events, touch events always carry absolute page coordinates
+    rect = ui.overlay.div.0.getBoundingClientRect()
     for touch in ev.originalEvent.targetTouches
       ui.overlay.add-annotation-client touch.pageX - rect.left, touch.pageY - rect.top
     ui.put!

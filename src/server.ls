@@ -52,7 +52,7 @@ class Server
     switch request.url
     case "/" =>
       response
-        ..writeHead 200, { 'Content-Type': 'text/html' } <<< NO_CACHE
+        ..writeHead 200, { 'Content-Type': 'text/html;charset=utf-8' } <<< NO_CACHE
         ..write '''<script src="jquery.js"></script><script src="EventEmitter.js"></script>
                    <script src="client.ls.js"></script>
                    <script src="overlay.ls.js"></script>
@@ -64,6 +64,10 @@ class Server
     case "/jquery.js" => @serve-static(response, "node_modules/jquery/dist/jquery.js")
     case "/EventEmitter.js" => @serve-static(response, "node_modules/eventemitter-browser/EventEmitter.js")
     case "/viewer.css" => @serve-static(response, "src/viewer.css")
+    case "/viewer.css" => @serve-static(response, "src/viewer.css")
+    case "/img/finger-left.png" => @serve-static(response, "img/finger-left.png")
+    case "/img/finger-right.png" => @serve-static(response, "img/finger-right.png")
+    case "/img/star.png" => @serve-static(response, "img/star.png")
     case "/overlay.json" =>
       switch request.method
         case "GET" => @serve-json(response, viewer.overlay.get-state!)
@@ -76,8 +80,11 @@ class Server
             viewer.annotate-changed!
           .on 'end' ->
             response.end!
-    else
+    case "/image.png" =>
       @serve-image response
+    else
+      @not-found response
+
 
   serve-static: (response, local-filename) ->
     fs.createReadStream(local-filename).pipe(response)
@@ -91,16 +98,21 @@ class Server
   serve-image: (response) ->
     blob = viewer?blob
     if !blob?
-      response.end!
+      @not-found response
     else
       err, buf <- blob-to-buffer blob
       if err
-        fs.createReadStream("./src/index.html").pipe(response)
+        console.error err
+        @not-found response
       else
         response
           ..writeHead 200, { 'Content-Type': 'image/png' } <<< NO_CACHE
           ..write buf ; ..end!
 
+  not-found: (response) ->
+    response
+      ..writeHead 404
+      ..end!
 
   _idcnt = 0
 

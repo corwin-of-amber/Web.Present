@@ -16,8 +16,8 @@ class Overlay
 
   cover: ($el) -> $el.0   #
     @box =
-      left: ..clientLeft #..offsetLeft - @container-element.0.offsetLeft
-      top: ..clientTop #..offsetTop - @container-element.0.offsetTop
+      left: ..offsetLeft - @div.0.offsetLeft
+      top: ..offsetTop - @div.0.offsetTop
       width: ..width
       height: ..height
 

@@ -130,7 +130,11 @@ export Viewer, viewer
 
 
 $ ->
-  $ 'body' .on 'contextmenu'/*, 'canvas'*/,  (.preventDefault!)
+  $ 'body' .on 'contextmenu' (.preventDefault!)
+  nw.Window.get!
+    ..on 'enter-fullscreen' -> $ 'body' .add-class 'fullscreen'; $(window).resize!
+    ..on 'restore' -> $ 'body' .remove-class 'fullscreen'; $(window).resize!
   Viewer.open(localStorage.last-uri ? URI)
 
+  # For development
   window.open('/src/client.html', 'client')

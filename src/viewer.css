@@ -2,14 +2,30 @@ body {
   overflow: hidden;
   height: calc(100vh - 16px);
   text-align: left;
+  /*position: relative;*/
 }
 
-canvas {
+body canvas {
   outline: 1px solid black;
+}
+
+body.viewer {
+  text-align: center;
+}
+
+body.fullscreen {
+  margin: 0;
+  height: 100vh;
+}
+
+body.fullscreen canvas {
+  outline: none;
 }
 
 div.overlay {
   position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .overlay .annotation {

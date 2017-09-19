@@ -10,10 +10,15 @@ open = ->
 menu = new nw.Menu({type: 'menubar'})
 
 menu.createMacBuiltin 'web-present'  # TODO skip this for non-Mac
+menu.items[*-1].submenu.append new nw.MenuItem do
+  label: "Devtools"
+  key: 'i'
+  modifiers: 'alt+cmd'
+  click: -> nw.Window.get!showDevTools!
 
 # Create a submenu as the 2nd level menu
 submenu = new nw.Menu()
-submenu.append(new nw.MenuItem({ label: 'Open...', click: open }))
+submenu.append(new nw.MenuItem({label: "Open...", click: open}))
 
 # Create and append the 1st level menu to the menubar
 menu.insert(new nw.MenuItem({
