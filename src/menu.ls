@@ -14,7 +14,7 @@ menu.items[*-1].submenu.append new nw.MenuItem do
   label: "Devtools"
   key: 'i'
   modifiers: 'alt+cmd'
-  click: -> nw.Window.get!showDevTools!
+  click: -> nw.Window.get(global.activeWindow).showDevTools!
 
 # Create a submenu as the 2nd level menu
 submenu = new nw.Menu()

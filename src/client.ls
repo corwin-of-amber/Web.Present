@@ -109,6 +109,10 @@ class PresenterUI
     ui.put!
 
 
+if typeof nw != 'undefined'
+  /* NWjs does not have an accessor for currently active window?! */
+  nw.Window.get!on 'focus' -> global.activeWindow = window
+
 
 $ ->
   ui = new PresenterUI
@@ -125,11 +129,14 @@ $ ->
 
   ui.img.on 'touchstart' (ev) ->
     ui.use-touch = true
-    #rect = ev.originalEvent.target.getBoundingClientRect()
-    # NOTICE Unlike mouse events, touch events always carry absolute page coordinates
+    # NOTICE Unlike mouse events, touch events always carry
+    #        absolute page coordinates
     rect = ui.overlay.div.0.getBoundingClientRect()
+    box = ui.overlay.box
     for touch in ev.originalEvent.targetTouches
-      ui.overlay.add-annotation-client touch.pageX - rect.left, touch.pageY - rect.top
+      ui.apply-tool touch.pageX - rect.left - box.left, \
+                    touch.pageY - rect.top  - box.top
+      # @@@   need to subtract box offsets  ^
     ui.put!
     #pc.ws.send 'next'
     ui.img.add-class 'touched'
@@ -142,9 +149,12 @@ $ ->
   ui.toolbar.on 'click' '#prev' -> pc.ws.send 'prev'
 
   window.onmessage = ->
-    if it.data == "\x3f\x3e\x3d"   /* 61,62,63 */
+    if it.data == "\x3f\x3e\x3d"   /* 63,62,61 */
       pc.ws.send 'prev'
-    else
+    else if it.data in ["\x3d\x3e\x3f",   /* 61,62,63 */
+                        "\x14\x14\x14"]
       pc.ws.send 'next'
+    else if it.data[0] == '{'
+      ui.toolbar.addClass 'large'
 
   export ui

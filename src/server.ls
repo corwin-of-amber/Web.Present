@@ -148,5 +148,8 @@ NO_CACHE =
 
 server = new Server
 
+/* NWjs does not have an accessor for currently active window?! */
+nw.Window.get!on 'focus' -> global.activeWindow = window
+
 
 export server

@@ -78,8 +78,20 @@ img.touched {
   outline: 1px solid blue;
 }
 
+div.toolbar.large {
+  font-size: 200%;
+}
+
+div.toolbar button {
+  font-size: 1em;
+}
+
 img#tool {
-  width: 16pt;
+  width: 24pt;
+}
+
+div.toolbar.large img#tool {
+  width: 36pt;
 }
 
 img#tool.laser {

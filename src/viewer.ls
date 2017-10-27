@@ -70,8 +70,8 @@ Nav =   # mixin
     $ 'body' .click ~> @next-page!
     $ 'body' .keydown (ev) ~>
       switch ev.key
-        case "ArrowRight" => @next-page!
-        case "ArrowLeft" => @prev-page!
+        case "ArrowRight", "PageDown" => @next-page!
+        case "ArrowLeft", "PageUp" => @prev-page!
     @on 'close' ->
       $ 'body' .off 'click'    /* @@@ removing all handlers */
       $ 'body' .off 'keydown'
