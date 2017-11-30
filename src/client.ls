@@ -101,12 +101,54 @@ class PresenterUI
     tool = @toolbar.find '#tool'
     switch
     | tool.has-class('laser') =>
-      ui.overlay.remove-annotations 'finger-left'
-      ui.overlay.add-annotation x, y, ['finger-left']
+      for trend in ['left', 'right']
+        @overlay.remove-annotations "finger-#{trend}"
+      trend = if ui.overlay.normx(x) > 0.3 then 'left' else 'right'
+      @overlay.add-annotation x, y, ["finger-#{trend}"]
     | tool.has-class('marker') =>
-      ui.overlay.add-annotation x, y, ['centered', 'star']
+      @overlay.add-annotation x, y, ['centered', 'star']
 
     ui.put!
+
+
+Annotate =     # mixin
+  annotate-start: ->
+    # For desktop clients, use mousedown
+    @img.mousedown (ev) ~>
+      if ! @use-touch
+        if ev.button == 2 && $(ev.target).is(@img)  # right button
+          @apply-tool ev.offsetX, ev.offsetY
+        #else
+        #  pc.ws.send 'next'
+    # For mobile clients, use touchstart
+    @img.on 'touchstart' (ev) ~>
+      @use-touch = true
+      # NOTICE Unlike mouse events, touch events always carry
+      #        absolute page coordinates
+      rect = @overlay.div.0.getBoundingClientRect()
+      box = @overlay.box
+      for touch in ev.originalEvent.targetTouches
+        @apply-tool touch.pageX - rect.left - box.left, \
+                    touch.pageY - rect.top  - box.top
+        # @@@ need to subtract box offsets  ^   (works buy ugly)
+      @put!
+
+AnnotateDrag =    # mixin
+  annotate-drag-start: ->
+    @knob = {}
+
+    @overlay.div.on 'touchstart' (ev) ~>
+      ann = @overlay.get-annotation-from-el(ev.target)
+      ev.originalEvent.targetTouches[0]
+        @knob = {ann, \
+                 x: ..pageX - @overlay.denormx(ann.x),\
+                 y: ..pageY - @overlay.denormy(ann.y)}
+      @overlay.move-annotation ann, @overlay.denormx(ann.x), @overlay.denormy(ann.y)
+    @overlay.div.on 'touchmove' (ev) ~>
+      ev.originalEvent.targetTouches[0]
+        @overlay.move-annotation @knob.ann, ..pageX - @knob.x, ..pageY - @knob.y
+    @overlay.div.on 'touchend' ~>
+      @put!
 
 
 if typeof nw != 'undefined'
@@ -118,27 +160,13 @@ $ ->
   ui = new PresenterUI
 
   pc.on 'refresh' ui~refresh
-  ui.img.mousedown (ev) ->
-    if !ui.use-touch
-      if ev.button == 2 && $(ev.target).is(ui.img)  # right button
-        ui.apply-tool ev.offsetX, ev.offsetY
-      else
-        pc.ws.send 'next'
 
   $ 'body' .contextmenu (.preventDefault!)
 
+  ui <<< Annotate
+  ui.annotate-start!
+
   ui.img.on 'touchstart' (ev) ->
-    ui.use-touch = true
-    # NOTICE Unlike mouse events, touch events always carry
-    #        absolute page coordinates
-    rect = ui.overlay.div.0.getBoundingClientRect()
-    box = ui.overlay.box
-    for touch in ev.originalEvent.targetTouches
-      ui.apply-tool touch.pageX - rect.left - box.left, \
-                    touch.pageY - rect.top  - box.top
-      # @@@   need to subtract box offsets  ^
-    ui.put!
-    #pc.ws.send 'next'
     ui.img.add-class 'touched'
     setTimeout -> ui.img.remove-class 'touched'
     , 1000
@@ -147,6 +175,9 @@ $ ->
 
   ui.toolbar.on 'click' '#next' -> pc.ws.send 'next'
   ui.toolbar.on 'click' '#prev' -> pc.ws.send 'prev'
+
+  ui <<< AnnotateDrag
+  ui.annotate-drag-start!
 
   window.onmessage = ->
     if it.data == "\x3f\x3e\x3d"   /* 63,62,61 */

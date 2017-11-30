@@ -44,6 +44,14 @@ class Overlay
       @annotations.push {x, y, classes, $el: ..}
       @div.append ..
 
+  move-annotation: (annot, x, y) ->
+    annot <<< {x: @normx(x), y: @normy(y)}
+    annot.$el.offset {left: x + @box.left, top: y + @box.top}
+
+  get-annotation-from-el: ($el) ->
+    el = $el.0 ? $el
+    @annotations.find (a) -> $.contains(a.$el.0, el)
+
   remove-annotations: (by-class) ->
     for @annotations.filter (-> by-class in it.classes) => ..$el.remove!
     @annotations = @annotations.filter (-> by-class not in it.classes)
