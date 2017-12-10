@@ -54,6 +54,7 @@ class PresenterUI
         ..append ($ '<button>' .attr \id 'prev' .text '◀︎')
         ..append ($ '<button>' .attr \id 'next' .text '▶︎')
         ..append ($ '<button>' .attr \id 'reload' .text '⟳')
+        ..append ($ '<button>' .attr \id 'bell' .text '!!')
         ..append ($ '<img>' .attr \id 'tool' .add-class 'laser')
         ..on 'click' '#clear' ~> @overlay.clear!; @put!
         ..on 'click' '#reload' -> window.location.reload!
@@ -175,6 +176,7 @@ $ ->
 
   ui.toolbar.on 'click' '#next' -> pc.ws.send 'next'
   ui.toolbar.on 'click' '#prev' -> pc.ws.send 'prev'
+  ui.toolbar.on 'click' '#bell' -> pc.ws.send 'bell'
 
   ui <<< AnnotateDrag
   ui.annotate-drag-start!

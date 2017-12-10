@@ -129,6 +129,12 @@ class Server
     switch message.utf8Data
       case 'next' => viewer.next-page!
       case 'prev' => viewer.prev-page!
+      case 'bell' =>
+        a = $('<audio>').attr('src', '/gfx/bell.mp3')
+        a.one 'canplay' !->
+          @currentTime = 1.25
+          @play!
+        viewer.announce 'lecture 08'
 
   disconnected: (conn, reason, desc) ->
     console.log "#{conn.remoteAddress} disconnected (#{reason} #{desc})"

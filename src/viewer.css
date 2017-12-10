@@ -78,6 +78,20 @@ div.overlay {
   display: block;
 }
 
+.overlay .announcement {
+  position: absolute;
+  width: auto;
+  text-align: center;
+}
+
+.overlay .announcement .caption {
+  position: relative;
+  left: -50%;
+  background: white;
+  white-space: nowrap;
+  font-family: "Super Mario Bros. 3";
+  font-size: 48pt;
+}
 
 div.toolbar {
   position: absolute;

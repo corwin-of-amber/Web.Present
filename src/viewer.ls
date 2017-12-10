@@ -102,9 +102,25 @@ Annotate =   # mixin
     server.broadcast "refresh"
 
 
+Announce =   # mixin
+  announce: (message) ->
+    ann = $ '<div>' .addClass 'announcement' .append \
+         ($ '<span>' .addClass 'caption' .text message)
+      ..offset do
+        left: @overlay.box.left + @overlay.box.width / 2
+        top: @overlay.box.top + @overlay.box.height / 5
+    viewer.overlay.div.append ann
+    times = 9
+    x = setInterval ->
+      ann.toggle!
+      if --times <= 0 then ann.remove! ; clearInterval x
+    , 333
+
+
+
 class Viewer extends ViewerCore
 
-Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate
+Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce
 
 
 viewer = undefined

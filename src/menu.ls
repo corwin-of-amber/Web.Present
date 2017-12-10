@@ -15,6 +15,11 @@ menu.items[*-1].submenu.append new nw.MenuItem do
   key: 'i'
   modifiers: 'alt+cmd'
   click: -> nw.Window.get(global.activeWindow).showDevTools!
+menu.items[*-1].submenu.append new nw.MenuItem do
+  label: "Reload"
+  key: 'r'
+  modifiers: 'cmd'
+  click: -> window._rebuildAndReload!
 
 # Create a submenu as the 2nd level menu
 submenu = new nw.Menu()
