@@ -88,7 +88,7 @@ div.overlay {
   position: relative;
   left: -50%;
   background: white;
-  white-space: nowrap;
+  white-space: pre;
   font-family: "Super Mario Bros. 3";
   font-size: 48pt;
 }

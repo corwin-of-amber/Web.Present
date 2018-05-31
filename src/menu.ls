@@ -20,6 +20,11 @@ menu.items[*-1].submenu.append new nw.MenuItem do
   key: 'r'
   modifiers: 'cmd'
   click: -> window._rebuildAndReload!
+menu.items[*-1].submenu.append new nw.MenuItem do
+  label: "Client"
+  key: 'c'
+  modifiers: 'cmd+shift'
+  click: -> window.open('/src/client.html', 'client')
 
 # Create a submenu as the 2nd level menu
 submenu = new nw.Menu()

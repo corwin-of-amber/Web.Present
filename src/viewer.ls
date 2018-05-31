@@ -153,4 +153,5 @@ $ ->
   Viewer.open(localStorage.last-uri ? URI)
 
   # For development
-  window.open('/src/client.html', 'client')
+  if localStorage.client-win-open
+    window.open('/src/client.html', 'client')
