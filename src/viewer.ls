@@ -147,6 +147,10 @@ export Viewer, viewer
 
 $ ->
   $ 'body' .on 'contextmenu' (.preventDefault!)
+  $ 'body' .on 'keydown' (ev) ->
+    switch ev.key
+      case "f" => nw.Window.get!enterFullscreen!
+      case "Escape" => nw.Window.get!leaveFullscreen!
   nw.Window.get!
     ..on 'enter-fullscreen' -> $ 'body' .add-class 'fullscreen'; $(window).resize!
     ..on 'restore' -> $ 'body' .remove-class 'fullscreen'; $(window).resize!
