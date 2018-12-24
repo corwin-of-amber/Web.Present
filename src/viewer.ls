@@ -67,14 +67,14 @@ SlideIndex =   # mixin
 
 Nav =   # mixin
   nav-bind-ui: ->
-    $ 'body' .click ~> @next-page!
-    $ 'body' .keydown (ev) ~>
+    $ 'body' .click click_eh = (ev) ~> @next-page!
+    $ 'body' .keydown keydown_eh = (ev) ~>
       switch ev.key
         case "ArrowRight", "PageDown" => @next-page!
         case "ArrowLeft", "PageUp" => @prev-page!
     @on 'close' ->
-      $ 'body' .off 'click'    /* @@@ removing all handlers */
-      $ 'body' .off 'keydown'
+      $ 'body' .off 'click', click_eh
+      $ 'body' .off 'keydown', keydown_eh
 
   next-page: ->
     @goto-page ++@selected-page

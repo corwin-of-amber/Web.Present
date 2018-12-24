@@ -3,9 +3,8 @@
 <script src="../node_modules/nwjs-kremlin/reload.js"></script>
 
 <%= jquery />
-<script>var _process = process; process = null;</script>
+<script>var _process = process, _Response = Response; process = Response = undefined;</script>
 <script src="../node_modules/pdfjs-dist/build/pdf.js"></script>
-<script>process = _process</script>
 
 <link rel="stylesheet" type="text/css" href="viewer.css">
 
@@ -13,7 +12,7 @@
 <script src="./overlay.ls.js"></script>
 <script src="./server.ls.js"></script>
 <script src="./menu.ls.js"></script>
-<!-- <script src="./hotkeys.ls.js"></script> -->
+<script src="./hotkeys.ls.js"></script>
 
 
 <body class="viewer">

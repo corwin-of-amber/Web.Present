@@ -183,6 +183,7 @@ $ ->
   ui <<< AnnotateDrag
   ui.annotate-drag-start!
 
+  # When running in WebView inside Android app
   window.onmessage = ->
     if it.data == "\x3f\x3e\x3d"   /* 63,62,61 */
       pc.ws.send 'prev'

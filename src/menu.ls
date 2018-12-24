@@ -7,6 +7,10 @@ dialog.setContext document
 open = ->
   dialog.openFileDialog -> Viewer.open "file://#{it}" #console.log it
 
+$ -> # hack to prevent 'click' from dialog.openFileDialog to reach body eh
+  $ 'body' .on 'click' '#open-file-dialog' (ev) ->
+    ev.stopPropagation!
+
 # Create an empty menubar
 menu = new nw.Menu({type: 'menubar'})
 
