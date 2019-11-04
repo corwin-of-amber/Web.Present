@@ -2,10 +2,11 @@
 
 mode = "internal"
 
+
 if mode == "external"
   /*
-   * use the following code to control PowerPoint or Keynote */
-
+   * use the following code to control PowerPoint or Keynote
+   */
   robot = require 'robotjs'
 
   hotkeys =
@@ -13,23 +14,30 @@ if mode == "external"
     "Command+F19": -> robot.keyTap "left"
     "Command+F18": -> robot.keyTap "left"
 
-if mode == "internal"
+else if mode == "internal"
   /*
-   * use the following code to control the viewer on the server */
+   * use the following code to control the viewer on the server 
+   */
   hotkeys =
-    "Command+F20": -> viewer.nextPage!
-    "Command+F19": -> viewer.prevPage!
-    "Command+F18": -> viewer.prevPage!
+    "Command+F20": -> viewer.next-page!
+    "Command+F19": -> viewer.prev-page!
+    "Command+F18": -> viewer.prev-page!
+    "Ctrl+Alt+F": -> viewer.toggleFullscreen!
 
+else
+  hotkeys = {}
 
 
 
 shortcuts =
   for let k, v of hotkeys
-    new nw.Shortcut {key: k, \
-                     active: (-> console.log "Global hotkey: #{this.key}"; v!), \
-                     failed: -> console.log it}
-      nw.App.registerGlobalHotKey ..
+    try
+      new nw.Shortcut {key: k, \
+                      active: (-> console.log "Global hotkey: #{this.key}"; v!), \
+                      failed: -> console.error it}
+        nw.App.registerGlobalHotKey ..
+    catch e
+      console.error e
 
 
 window.addEventListener 'unload' ->

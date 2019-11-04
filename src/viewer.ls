@@ -43,6 +43,9 @@ class ViewerCore extends EventEmitter
 
   refresh: -> @flush! ; if @selected-page then @goto-page that
 
+  toggle-fullscreen: -> nw.Window.get!
+    if ..isFullscreen then ..leaveFullscreen! else ..enterFullscreen!
+
 
 /**
  * Builds an index of page number -> slide number, based on a heuristic
@@ -67,21 +70,37 @@ SlideIndex =   # mixin
 
 Nav =   # mixin
   nav-bind-ui: ->
+    @nav-history = [@selected-page ? 1]
     $ 'body' .click click_eh = (ev) ~> @next-page!
     $ 'body' .keydown keydown_eh = (ev) ~>
       switch ev.key
         case "ArrowRight", "PageDown" => @next-page!
         case "ArrowLeft", "PageUp" => @prev-page!
+        case "Home" => @nav-goto-first!
+        case "End" =>  @nav-goto-last!
+        case "Backspace" => @nav-go-back!
     @on 'close' ->
       $ 'body' .off 'click', click_eh
       $ 'body' .off 'keydown', keydown_eh
 
+  nav-goto-page: (num) ->
+    @nav-history.push @selected-page
+    @goto-page num
+
+  nav-go-back: ->
+    if @nav-history.length > 0
+      num = @nav-history.pop!
+      @goto-page num
+
+  nav-goto-first: -> @nav-goto-page 1
+  nav-goto-last: -> @nav-goto-page @pdf.numPages
+
   next-page: ->
-    @goto-page ++@selected-page
+    @nav-goto-page @selected-page + 1
 
   prev-page: ->
     if @selected-page > 1
-      @goto-page --@selected-page
+      @nav-goto-page @selected-page - 1
 
 Annotate =   # mixin
   annotate-start: ->
@@ -149,7 +168,7 @@ $ ->
   $ 'body' .on 'contextmenu' (.preventDefault!)
   $ 'body' .on 'keydown' (ev) ->
     switch ev.key
-      case "f" => nw.Window.get!enterFullscreen!
+      case "f" => viewer.toggle-fullscreen!
       case "Escape" => nw.Window.get!leaveFullscreen!
   nw.Window.get!
     ..on 'enter-fullscreen' -> $ 'body' .add-class 'fullscreen'; $(window).resize!
