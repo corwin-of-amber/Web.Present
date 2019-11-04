@@ -1,6 +1,6 @@
 # For Microsoft Surface Pen
 
-mode = "internal"
+mode = "external"
 
 
 if mode == "external"
@@ -10,7 +10,7 @@ if mode == "external"
   robot = require 'robotjs'
 
   hotkeys =
-    "Command+F20": -> robot.keyTap "space"
+    "Command+F20": -> robot.keyTap "right"
     "Command+F19": -> robot.keyTap "left"
     "Command+F18": -> robot.keyTap "left"
 

@@ -183,6 +183,18 @@ $ ->
   ui <<< AnnotateDrag
   ui.annotate-drag-start!
 
+  $ 'body' .keydown keydown_eh = (ev) ~>
+    switch ev.key
+      case "ArrowRight" => pc.ws.send 'next'
+      case "ArrowLeft"  => pc.ws.send 'prev'
+      case "ArrowDown" \
+           "PageDown"   => pc.ws.send 'next-slide'
+      case "ArrowUp" \
+           "PageUp"     => pc.ws.send 'prev-slide'
+      case "Home"       => pc.ws.send 'first'
+      case "End"        => pc.ws.send 'last'
+      case "Backspace"  => pc.ws.send 'back'
+
   # When running in WebView inside Android app
   window.onmessage = ->
     if it.data == "\x3f\x3e\x3d"   /* 63,62,61 */

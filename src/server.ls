@@ -129,7 +129,11 @@ class Server
     switch message.utf8Data
       case 'next' => viewer.next-page!
       case 'prev' => viewer.prev-page!
-      case 'last' => viewer.goto-page viewer.pdf.numPages
+      case 'next-slide' => viewer.next-slide!
+      case 'prev-slide' => viewer.prev-slide!
+      case 'first' => viewer.nav-goto-first!
+      case 'last' => viewer.nav-goto-last!
+      case 'back' => viewer.nav-go-back!
       case 'bell' =>
         a = $('<audio>').attr('src', '/gfx/bell.mp3')
         a.one 'canplay' !->

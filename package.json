@@ -13,5 +13,8 @@
     "prelude-ls": "^1.1.2",
     "stoppable": "^1.0.4",
     "websocket": "^1.0.24"
+  },
+  "optionalDependencies": {
+    "robotjs": "^0.5.1"
   }
 }

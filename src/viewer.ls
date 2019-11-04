@@ -55,7 +55,7 @@ class ViewerCore extends EventEmitter
 SlideIndex =   # mixin
   prepare-slide-index: ->
     pages = [@pdf.getPage(i) for i from 1 to @pdf.numPages]
-    slide-index = {}
+    slide-index = []
     pages.reduce (promise, page) ->
       promise.then (prev) -> page.then (page) ->
         page.getTextContent!then ({items: text-items}) ->
@@ -68,17 +68,37 @@ SlideIndex =   # mixin
     , Promise.resolve slide-num: 0, possible-captions: []
     .then ~> @slide-index = slide-index
 
+  get-slide-page: (slide-number) ->
+    for _slide-number, page-index in @slide-index
+      if _slide-number == slide-number
+        return page-index
+
+  goto-slide: (num) ->
+    page = @get-slide-page num
+    if page? then @goto-page page
+
+  next-slide: ->
+    @goto-slide @slide-index[@selected-page] + 1
+
+  prev-slide: ->
+    @goto-slide @slide-index[@selected-page] - 1
+
+
 Nav =   # mixin
   nav-bind-ui: ->
     @nav-history = [@selected-page ? 1]
     $ 'body' .click click_eh = (ev) ~> @next-page!
     $ 'body' .keydown keydown_eh = (ev) ~>
       switch ev.key
-        case "ArrowRight", "PageDown" => @next-page!
-        case "ArrowLeft", "PageUp" => @prev-page!
-        case "Home" => @nav-goto-first!
-        case "End" =>  @nav-goto-last!
-        case "Backspace" => @nav-go-back!
+        case "ArrowRight" => @next-page!
+        case "ArrowLeft"  => @prev-page!
+        case "ArrowDown" \
+             "PageDown"   => @next-slide!   # these two depend on SlideIndex
+        case "ArrowDown" \
+             "PageUp"     => @prev-slide!
+        case "Home"       => @nav-goto-first!
+        case "End"        => @nav-goto-last!
+        case "Backspace"  => @nav-go-back!
     @on 'close' ->
       $ 'body' .off 'click', click_eh
       $ 'body' .off 'keydown', keydown_eh
@@ -101,6 +121,7 @@ Nav =   # mixin
   prev-page: ->
     if @selected-page > 1
       @nav-goto-page @selected-page - 1
+
 
 Annotate =   # mixin
   annotate-start: ->
