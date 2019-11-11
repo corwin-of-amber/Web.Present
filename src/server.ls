@@ -134,6 +134,7 @@ class Server
       case 'first' => viewer.nav-goto-first!
       case 'last' => viewer.nav-goto-last!
       case 'back' => viewer.nav-go-back!
+      case 'applet' => viewer.applet-toggle!
       case 'bell' =>
         a = $('<audio>').attr('src', '/gfx/bell.mp3')
         a.one 'canplay' !->

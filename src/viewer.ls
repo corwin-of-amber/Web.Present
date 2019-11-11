@@ -17,8 +17,8 @@ class ViewerCore extends EventEmitter
     canvas = $('<canvas>')
     @pdf.getPage(page-num).then (page) ~>
       viewport = page.getViewport(1)
-      @containing-element
-        scale = Math.min(..height! / viewport.height, ..width! / viewport.width)
+      @get-display-size!
+        scale = Math.min(..height / viewport.height, ..width / viewport.width)
       viewport = page.getViewport(scale)
       ctx = canvas.0.getContext('2d')
       canvas.0.width = viewport.width ; canvas.0.height = viewport.height
@@ -27,8 +27,12 @@ class ViewerCore extends EventEmitter
         canvasContext: ctx
         viewport: viewport
       .then ~>
-      #  canvas.0.toBlob (@blob) ~> @emit('rendered')
         canvas
+  
+  get-display-size: ->
+    height: @containing-element.height!
+    width: if @containing-element.hasClass('slide-left') \
+            then $(window).width! else @containing-element.width!
 
   goto-page: (page-num) ->
     @selected-page = page-num
@@ -45,6 +49,10 @@ class ViewerCore extends EventEmitter
 
   toggle-fullscreen: -> nw.Window.get!
     if ..isFullscreen then ..leaveFullscreen! else ..enterFullscreen!
+  
+  set-sled: (flag) ->
+    if flag then @containing-element.addClass 'slide-left'
+    else @containing-element.removeClass 'slide-left'
 
 
 /**
@@ -157,10 +165,21 @@ Announce =   # mixin
     , 333
 
 
+AppletIntegration =   # mixin
+  applet-init: ->
+    applet.set-visible false
+    applet.load!
+    $(document).keydown (ev) ~>
+      if ev.originalEvent.code == 'KeyA' then @applet-toggle!
+  applet-toggle: ->
+    @applet-active = !@applet-active
+    @set-sled @applet-active
+    applet.set-visible @applet-active
+
 
 class Viewer extends ViewerCore
 
-Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce
+Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce <<<< AppletIntegration
 
 
 viewer = undefined
@@ -172,6 +191,7 @@ Viewer.open = (uri) ->
       ..annotate-start!
       ..nav-bind-ui!
       ..prepare-slide-index!
+      ..applet-init!
       ..on 'displayed' -> server.broadcast "refresh"
       ..goto-page 1
       $(window).resize -> ..refresh!

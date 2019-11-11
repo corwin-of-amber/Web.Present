@@ -11,6 +11,12 @@ body canvas {
 
 body.viewer {
   text-align: center;
+  width: 100%;
+  transition: width .8s ease;
+}
+
+body.viewer.slide-left {
+  width: 50%;
 }
 
 body.fullscreen {
@@ -127,4 +133,21 @@ img#tool.laser {
 
 img#tool.marker {
   content: url(../img/star.png);
+}
+
+
+/* --- applet --- */
+
+div.applet-container {
+  position: absolute;
+  right: 1vw;
+  top: 20px;
+  width: 30vw;
+  height: 95vh;
+  background: #fff3;
+  transition: right 0.5s ease-out;
+}
+
+div.applet-container.folded {
+  right: -30vw;
 }

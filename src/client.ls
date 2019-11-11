@@ -194,6 +194,8 @@ $ ->
       case "Home"       => pc.ws.send 'first'
       case "End"        => pc.ws.send 'last'
       case "Backspace"  => pc.ws.send 'back'
+    switch ev.code
+      case "KeyA"       => pc.ws.send 'applet'
 
   # When running in WebView inside Android app
   window.onmessage = ->
