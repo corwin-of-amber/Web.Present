@@ -102,7 +102,7 @@ Nav =   # mixin
         case "ArrowLeft"  => @prev-page!
         case "ArrowDown" \
              "PageDown"   => @next-slide!   # these two depend on SlideIndex
-        case "ArrowDown" \
+        case "ArrowUp" \
              "PageUp"     => @prev-slide!
         case "Home"       => @nav-goto-first!
         case "End"        => @nav-goto-last!
