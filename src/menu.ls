@@ -15,9 +15,11 @@ $ -> # hack to prevent 'click' from dialog.openFileDialog to reach body eh
 menu = new nw.Menu({type: 'menubar'})
 
 if os.platform == 'darwin'
+  cmd = 'cmd'
   menu.createMacBuiltin 'web-present'
   menu-window = menu.items[*-1]
 else
+  cmd = 'ctrl'
   menu.append do
     menu-window = new nw.MenuItem do
       label: "Window"
@@ -26,17 +28,17 @@ else
 menu-window.submenu.append new nw.MenuItem do
   label: "Devtools"
   key: 'i'
-  modifiers: 'alt+cmd'
+  modifiers: 'alt+'+cmd
   click: -> nw.Window.get(global.activeWindow).showDevTools!
 menu-window.submenu.append new nw.MenuItem do
   label: "Reload"
   key: 'r'
-  modifiers: 'cmd'
+  modifiers: cmd
   click: -> window._rebuildAndReload!
 menu-window.submenu.append new nw.MenuItem do
   label: "Client"
   key: 'c'
-  modifiers: 'cmd+shift'
+  modifiers: cmd+'+shift'
   click: -> window.open('/src/client.html', 'client')
 
 # Create the File menu

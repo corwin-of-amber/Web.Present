@@ -1,7 +1,11 @@
 
+process ?= _process
+
+HOME = process.env.HOME ? \
+  (process.env.HOMEDRIVE + process.env.HOMEPATH)  # Windows
 
 APPLET =
-  base-uri: "file://#{_process.env.HOME}/var/workspace/Teaching.Compilers.Lecture/applets/shift-reduce"
+  base-uri: "file://#{HOME}/var/workspace/Teaching.Compilers.Lecture/applets/shift-reduce"
   assets: ["shift-reduce.js", "shift-reduce.css"]
 
 
