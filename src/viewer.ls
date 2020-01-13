@@ -1,8 +1,11 @@
 {EventEmitter} = require 'events'
 
+# Required PDFJS configuration 
+# (for correct rendering of Unicode characters)
+# see https://github.com/mozilla/pdf.js/issues/9495
+PDFJS.cMapUrl = '../node_modules/pdfjs-dist/cmaps/'
+PDFJS.cMapPacked = true
 
-
-URI = "../data/01-intro.pdf"
 
 
 class ViewerCore extends EventEmitter
