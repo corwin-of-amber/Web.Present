@@ -14,7 +14,7 @@ $ -> # hack to prevent 'click' from dialog.openFileDialog to reach body eh
 # Create an empty menubar
 menu = new nw.Menu({type: 'menubar'})
 
-if os.platform == 'darwin'
+if os.platform! == 'darwin'
   cmd = 'cmd'
   menu.createMacBuiltin 'web-present'
   menu-window = menu.items[*-1]
@@ -54,6 +54,6 @@ menu.insert(new nw.MenuItem({
 nw.Window.get!
   ..menu = menu
   # hide menu on fullscreen
-  if os.plaform != 'darwin'  # (on Mac this happens automatically)
+  if os.platform! != 'darwin'  # (on Mac this happens automatically)
     ..on 'enter-fullscreen' -> ..menu = null
     ..on 'restore' -> ..menu = menu
