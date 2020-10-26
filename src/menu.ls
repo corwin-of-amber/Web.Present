@@ -52,8 +52,13 @@ menu.insert(new nw.MenuItem({
 
 # Assign it to `window.menu` to get the menu displayed
 nw.Window.get!
-  ..menu = menu
+  hide-menu = -> ..menu = null
+  show-menu = -> ..menu = menu
+  
+  show-menu!
   # hide menu on fullscreen
   if os.platform! != 'darwin'  # (on Mac this happens automatically)
-    ..on 'enter-fullscreen' -> ..menu = null
-    ..on 'restore' -> ..menu = menu
+    ..on 'enter-fullscreen' hide-menu
+    ..on 'restore' show-menu
+
+  window <<< {hide-menu, show-menu}

@@ -17,5 +17,8 @@
   },
   "optionalDependencies": {
     "robotjs": "^0.5.1"
+  },
+  "window": {
+    "frame": false
   }
 }

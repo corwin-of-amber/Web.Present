@@ -53,6 +53,11 @@ class ViewerCore extends EventEmitter
   toggle-fullscreen: -> nw.Window.get!
     if ..isFullscreen then ..leaveFullscreen! else ..enterFullscreen!
   
+  toggle-windowed-present: ->
+    $ 'body' .toggle-class 'fullscreen'
+      if ..has-class 'fullscreen' then hide-menu! else show-menu!
+
+
   set-sled: (flag) ->
     if flag then @containing-element.addClass 'slide-left'
     else @containing-element.removeClass 'slide-left'
@@ -213,6 +218,7 @@ $ ->
   $ 'body' .on 'keydown' (ev) ->
     switch ev.key
       case "f" => viewer.toggle-fullscreen!
+      case "g" => viewer.toggle-windowed-present!
       case "Escape" => nw.Window.get!leaveFullscreen!
   nw.Window.get!
     ..on 'enter-fullscreen' -> $ 'body' .add-class 'fullscreen'; $(window).resize!
