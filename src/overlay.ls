@@ -23,25 +23,28 @@ class Overlay
 
   DEFAULT_ANNOT_CLASSES = ['centered', 'circle']
 
-  add-annotation: (x, y, classes=DEFAULT_ANNOT_CLASSES) ->
+  add-annotation: (x, y, classes=DEFAULT_ANNOT_CLASSES, angle=0) ->
     $ '<a>' .add-class 'annotation'
       ..offset {left: x + @box.left, top: y + @box.top}
       ..append @_create-inner classes
-      @annotations.push {x: @normx(x), y: @normy(y), classes, $el: ..}
+      ..css '--angle' "#{angle}rad"
+      @annotations.push {x: @normx(x), y: @normy(y), classes, angle, $el: ..}
       @div.append ..
 
-  add-annotation-client: (x, y, classes=DEFAULT_ANNOT_CLASSES) ->
+  add-annotation-client: (x, y, classes=DEFAULT_ANNOT_CLASSES, angle=0) ->
     $ '<a>' .add-class 'annotation'
       ..offset {left: x, top: y}
       ..append @_create-inner classes
-      @annotations.push {x: @normx(x - @box.left), y: @normy(y - @box.top), classes, $el: ..}
+      ..css '--angle' "#{angle}rad"
+      @annotations.push {x: @normx(x - @box.left), y: @normy(y - @box.top), classes, angle, $el: ..}
       @div.append ..
 
-  add-annotation-norm: (x, y, classes=DEFAULT_ANNOT_CLASSES) ->
+  add-annotation-norm: (x, y, classes=DEFAULT_ANNOT_CLASSES, angle=0) ->
     $ '<a>' .add-class 'annotation'
       ..offset {left: @denormx(x) + @box.left, top: @denormy(y) + @box.top}
       ..append @_create-inner classes
-      @annotations.push {x, y, classes, $el: ..}
+      ..css '--angle' "#{angle}rad"
+      @annotations.push {x, y, classes, angle, $el: ..}
       @div.append ..
 
   move-annotation: (annot, x, y) ->
@@ -63,12 +66,12 @@ class Overlay
     @div.empty!
     @annotations = []
 
-  get-state: -> [{..x, ..y, ..classes} for @annotations]
+  get-state: -> [{..x, ..y, ..classes, ..angle} for @annotations]
 
   set-state: (state) ->
     @clear!
-    for {x, y, classes} in state
-      @add-annotation-norm x, y, classes
+    for {x, y, classes, angle} in state
+      @add-annotation-norm x, y, classes, angle
 
 
 

@@ -16,7 +16,7 @@
     "websocket": "^1.0.24"
   },
   "optionalDependencies": {
-    "robotjs": "^0.5.1"
+    "robotjs": "^0.6.0"
   },
   "window": {
     "frame": false

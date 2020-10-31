@@ -38,6 +38,10 @@ div.overlay {
   position: absolute;
   user-select: none;
   cursor: pointer;
+  pointer-events: none;
+  transform-origin: 0 0;
+  transform: rotate(var(--angle));
+  --angle: 0;
 }
 .overlay .annotation .centered {
   margin-left: -50%;
