@@ -126,6 +126,7 @@ Annotate =     # mixin
       if ! @use-touch
         if $(ev.target).is(@img)
           gesture.start = {x: ev.offsetX, y:ev.offsetY}
+          @preview-tool gesture
     @img.on 'mousemove' (ev) ~>
       if ! @use-touch
         if ev.buttons && gesture.start?
@@ -139,12 +140,27 @@ Annotate =     # mixin
           gesture.start = undefined
 
     # For mobile clients, use touchstart
+    # NOTICE Unlike mouse events, touch events always carry
+    #        absolute page coordinates
+    touches = new Map
     @img.on 'touchstart' (ev) ~>
       @use-touch = true
-      # NOTICE Unlike mouse events, touch events always carry
-      #        absolute page coordinates
-      for touch in ev.originalEvent.targetTouches
-        @apply-tool {start: box-coord({x: touch.pageX, y: touch.pageY})}
+      for touch in ev.originalEvent.changedTouches
+        t = {start: box-coord({x: touch.pageX, y: touch.pageY})}
+        touches.set touch.identifier, t
+        @preview-tool t
+    @img.on 'touchmove' (ev) ~>
+      for touch in ev.originalEvent.changedTouches
+        if (t = touches.get(touch.identifier))?
+          p = box-coord({x: touch.pageX, y: touch.pageY})
+          vec = {x: p.x - t.start.x, y: p.y - t.start.y}
+          t.angle = Math.atan2(vec.y, vec.x)
+          @preview-tool t
+    @img.on 'touchend' (ev) ~>
+      for touch in ev.originalEvent.changedTouches
+        if (t = touches.get(touch.identifier))?
+          @apply-tool t
+          touches.delete(touch.identifier)
 
     box-coord = ({x, y}) ~>
       rect = @overlay.div.0.getBoundingClientRect()  # @@@ actually always as (0, 0)
