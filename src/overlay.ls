@@ -14,12 +14,12 @@ class Overlay
   denormx: (x) -> x * @box.width # + @box.left
   denormy: (y) -> y * @box.height # + @box.top
 
-  cover: ($el) -> $el.0   #
+  cover: ($el, resolution=1) -> $el.0   #
     @box =
       left: ..offsetLeft - @div.0.offsetLeft
       top: ..offsetTop - @div.0.offsetTop
-      width: ..width
-      height: ..height
+      width: ..width / resolution
+      height: ..height / resolution
 
   DEFAULT_ANNOT_CLASSES = ['centered', 'circle']
 

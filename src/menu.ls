@@ -39,7 +39,7 @@ menu-window.submenu.append new nw.MenuItem do
   label: "Client"
   key: 'c'
   modifiers: cmd+'+shift'
-  click: -> window.open('/src/client.html', 'client')
+  click: -> nw.Window.open('/src/client.html')
 
 # Create the File menu
 submenu = new nw.Menu()

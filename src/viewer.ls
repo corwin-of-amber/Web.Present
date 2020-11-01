@@ -15,6 +15,7 @@ class ViewerCore extends EventEmitter
     @canvas = {}
     @canvas[1] = @render-page(1)
     @selected-page = undefined
+    @resolution = 2
 
   render-page: (page-num) ->
     canvas = $('<canvas>')
@@ -22,9 +23,10 @@ class ViewerCore extends EventEmitter
       viewport = page.getViewport(1)
       @get-display-size!
         scale = Math.min(..height / viewport.height, ..width / viewport.width)
-      viewport = page.getViewport(scale)
-      ctx = canvas.0.getContext('2d')
+      viewport = page.getViewport(scale * @resolution)
       canvas.0.width = viewport.width ; canvas.0.height = viewport.height
+      canvas.0.style.width = viewport.width / @resolution
+      ctx = canvas.0.getContext('2d')
 
       page.render do
         canvasContext: ctx
@@ -144,7 +146,9 @@ Annotate =   # mixin
     @overlay = new Overlay @containing-element
     @page-overlay-state = {}
     @on 'displayed' (canvas) ~>
-      @overlay.cover canvas
+      setTimeout ~>
+        @overlay.cover canvas, @resolution
+      , 1200  /** @todo this is a hack, canvas may not have stabilized? */
       slide-num = @slide-index?[@selected-page] ? @selected-page
       @overlay.set-state @page-overlay-state[slide-num] ? []
     @containing-element.mousedown (ev) !~>
