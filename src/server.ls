@@ -1,3 +1,4 @@
+fs = require 'fs'
 http = require 'http'
 blob-to-buffer = require '../lib/blob-to-buffer'
 WebSocketServer = require 'websocket' .server

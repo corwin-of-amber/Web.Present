@@ -99,41 +99,74 @@ class PresenterUI
     [tool.remove-class .. for ['laser', 'marker']]
     tool.add-class next
 
-  apply-tool: (x, y) ->
+  preview-tool: (gesture) ->
+    @apply-tool gesture, false
+
+  apply-tool: (gesture, commit=true) ->
     tool = @toolbar.find '#tool'
+    {x, y} = gesture.start
     switch
     | tool.has-class('laser') =>
       for trend in ['left', 'right']
         @overlay.remove-annotations "finger-#{trend}"
       trend = if ui.overlay.normx(x) > 0.3 then 'left' else 'right'
-      @overlay.add-annotation x, y, ["finger-#{trend}"]
+      @overlay.add-annotation x, y, ["finger-#{trend}"], gesture.angle
     | tool.has-class('marker') =>
       @overlay.add-annotation x, y, ['centered', 'star']
 
-    ui.put!
+    if commit then @put!
 
 
 Annotate =     # mixin
   annotate-start: ->
+    gesture = {}
     # For desktop clients, use mousedown
-    @img.mousedown (ev) ~>
+    @img.on 'dragstart', (.preventDefault!)
+    @img.on 'mousedown' (ev) ~>
       if ! @use-touch
-        if ev.button == 2 && $(ev.target).is(@img)  # right button
-          @apply-tool ev.offsetX, ev.offsetY
-        #else
-        #  pc.ws.send 'next'
+        if $(ev.target).is(@img)
+          gesture.start = {x: ev.offsetX, y:ev.offsetY}
+          @preview-tool gesture
+    @img.on 'mousemove' (ev) ~>
+      if ! @use-touch
+        if ev.buttons && gesture.start?
+          vec = {x: ev.offsetX - gesture.start.x, y: ev.offsetY - gesture.start.y}
+          gesture.angle = Math.atan2(vec.y, vec.x)
+          @preview-tool gesture
+    @img.on 'mouseup' (ev) ~>
+      if ! @use-touch
+        if gesture.start?
+          @apply-tool gesture
+          gesture.start = undefined
+
     # For mobile clients, use touchstart
+    # NOTICE Unlike mouse events, touch events always carry
+    #        absolute page coordinates
+    touches = new Map
     @img.on 'touchstart' (ev) ~>
       @use-touch = true
-      # NOTICE Unlike mouse events, touch events always carry
-      #        absolute page coordinates
-      rect = @overlay.div.0.getBoundingClientRect()
+      for touch in ev.originalEvent.changedTouches
+        t = {start: box-coord({x: touch.pageX, y: touch.pageY})}
+        touches.set touch.identifier, t
+        @preview-tool t
+    @img.on 'touchmove' (ev) ~>
+      for touch in ev.originalEvent.changedTouches
+        if (t = touches.get(touch.identifier))?
+          p = box-coord({x: touch.pageX, y: touch.pageY})
+          vec = {x: p.x - t.start.x, y: p.y - t.start.y}
+          t.angle = Math.atan2(vec.y, vec.x)
+          @preview-tool t
+    @img.on 'touchend' (ev) ~>
+      for touch in ev.originalEvent.changedTouches
+        if (t = touches.get(touch.identifier))?
+          @apply-tool t
+          touches.delete(touch.identifier)
+
+    box-coord = ({x, y}) ~>
+      rect = @overlay.div.0.getBoundingClientRect()  # @@@ actually always as (0, 0)
       box = @overlay.box
-      for touch in ev.originalEvent.targetTouches
-        @apply-tool touch.pageX - rect.left - box.left, \
-                    touch.pageY - rect.top  - box.top
-        # @@@ need to subtract box offsets  ^   (works buy ugly)
-      @put!
+      {x: x - rect.left - box.left, \
+       y: y - rect.top  - box.top}
 
 AnnotateDrag =    # mixin
   annotate-drag-start: ->
