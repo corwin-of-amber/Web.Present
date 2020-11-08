@@ -21,6 +21,8 @@ class Overlay
       width: ..width / resolution
       height: ..height / resolution
 
+  remove: -> @div.remove!
+
   DEFAULT_ANNOT_CLASSES = ['centered', 'circle']
 
   add-annotation: (x, y, classes=DEFAULT_ANNOT_CLASSES, angle=0) ->

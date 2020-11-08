@@ -5,7 +5,8 @@ dialog = require 'nw-dialog'
 dialog.setContext document
 
 open = ->
-  dialog.openFileDialog -> Viewer.open "file://#{it}" #console.log it
+  dialog.openFileDialog true ->
+    Viewer.open ["file://#{..}" for it.split(';')]
 
 $ -> # hack to prevent 'click' from dialog.openFileDialog to reach body eh
   $ 'body' .on 'click' '#open-file-dialog' (ev) ->

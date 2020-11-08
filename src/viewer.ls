@@ -151,6 +151,7 @@ Annotate =   # mixin
       , 1200  /** @todo this is a hack, canvas may not have stabilized? */
       slide-num = @slide-index?[@selected-page] ? @selected-page
       @overlay.set-state @page-overlay-state[slide-num] ? []
+    @on 'close' ~> @overlay.remove!
     @containing-element.mousedown (ev) !~>
       if ev.button == 2 && $(ev.target).is('canvas')  # right button
         @overlay.add-annotation ev.offsetX, ev.offsetY
@@ -196,22 +197,34 @@ Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce <<<< Apple
 
 viewer = undefined
 
-Viewer.open = (uri) ->
+Viewer.open = (uris) ->>
   viewer?emit 'close'
-  PDFJS.getDocument(uri).then (pdf) ->
-    viewer := new Viewer(pdf)
-      ..annotate-start!
-      ..nav-bind-ui!
-      ..prepare-slide-index!
-      ..applet-init!
-      ..on 'displayed' -> server.broadcast "refresh"
-      ..goto-page 1
-      $(window).resize -> ..refresh!
-      ..on 'close' -> $(window).off 'resize'
+  if !Array.isArray(uris) then uris = [uris]
+  pdfs = await Promise.all([PDFJS.getDocument(..) for uris])
+  viewer := new Viewer(new MultiPDF(pdfs))
+    ..annotate-start!
+    ..nav-bind-ui!
+    ..prepare-slide-index!
+    #..applet-init!
+    ..on 'displayed' -> server.broadcast "refresh"
+    ..goto-page 1
+    $(window).resize -> ..refresh!
+    ..on 'close' -> $(window).off 'resize'
 
-    localStorage.last-uri = uri
+  localStorage.last-uri = uris.join(';')
 
-    export viewer
+  export viewer
+
+
+class MultiPDF
+  (@pdfs) ->
+    @numPages = [..numPages for @pdfs].reduce((a,b) -> a + b)
+  
+  getPage: (page-no) ->
+    i = page-no
+    for pdf in @pdfs
+      if i <= pdf.numPages then return pdf.getPage(i);
+      else i -= pdf.numPages
 
 
 export Viewer, viewer
@@ -227,7 +240,8 @@ $ ->
   nw.Window.get!
     ..on 'enter-fullscreen' -> $ 'body' .add-class 'fullscreen'; $(window).resize!
     ..on 'restore' -> $ 'body' .remove-class 'fullscreen'; $(window).resize!
-  Viewer.open(localStorage.last-uri ? URI)
+  if localStorage.last-uri
+    Viewer.open that.split(';')
 
   # For development
   if localStorage.client-win-open
