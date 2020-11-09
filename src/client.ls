@@ -38,12 +38,13 @@ export pc
 
 class PresenterUI
 
-  (@container-element ? $('body')) ->
+  (@container-element ? $('body'), opts ? {}) ->
     @overlay = new Overlay $ 'body'  # note: overlay should come first #sorry
     @img = $ '<img>' .attr 'src' "http://#{host}/image.png" #-#{Math.random!}.png"
       ..append-to @container-element
     @img-aspect-ratio = undefined
     @toolbar = @create-toolbar!append-to @container-element
+      if opts.toolbar then ..addClass that
     @use-touch = false
     @img.on 'load' ~> @fit-in-window!
     $(window).on 'resize' ~> @fit-in-window!
@@ -192,7 +193,9 @@ if typeof nw != 'undefined'
 
 
 $ ->
-  ui = new PresenterUI
+  opts = new URLSearchParams(location.search);
+
+  ui = new PresenterUI($('body'), {toolbar: opts.get('toolbar')})
 
   pc.on 'refresh' ui~refresh
 

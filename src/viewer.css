@@ -111,6 +111,10 @@ div.toolbar {
   top: 0;
 }
 
+div.toolbar.hide {
+  display: none;
+}
+
 img.touched {
   outline: 1px solid blue;
 }

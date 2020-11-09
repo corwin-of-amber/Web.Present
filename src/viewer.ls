@@ -72,16 +72,24 @@ class ViewerCore extends EventEmitter
  */
 SlideIndex =   # mixin
   prepare-slide-index: ->
-    pages = [@pdf.getPage(i) for i from 1 to @pdf.numPages]
+    pages = [[i, @pdf.getPage(i)] for i from 1 to @pdf.numPages]
     slide-index = []
-    pages.reduce (promise, page) ->
+    slide-offset = 0
+    pages.reduce (promise, [idx, page]) ->
       promise.then (prev) -> page.then (page) ->
         page.getTextContent!then ({items: text-items}) ->
           old-witnesses = text-items.filter ((x) -> prev.possible-captions.some (=== x))
           new-witnesses = text-items.filter (.str ~= prev.slide-num + 1)
-          slide-num = if old-witnesses.length then prev.slide-num else prev.slide-num + 1
+          restart-witnesses = text-items.filter (.str == '1')
+          if old-witnesses.length
+            slide-num = prev.slide-num
+          else if new-witnesses.length || !restart-witnesses.length
+            slide-num = prev.slide-num + 1
+          else
+            slide-num = 1; slide-offset := prev.slide-num
+            new-witnesses = restart-witnesses
           possible-captions = if old-witnesses.length then old-witnesses else new-witnesses
-          slide-index[page.pageNumber] = slide-num
+          slide-index[idx] = slide-num + slide-offset
           {slide-num, possible-captions}
     , Promise.resolve slide-num: 0, possible-captions: []
     .then ~> @slide-index = slide-index
@@ -223,7 +231,7 @@ class MultiPDF
   getPage: (page-no) ->
     i = page-no
     for pdf in @pdfs
-      if i <= pdf.numPages then return pdf.getPage(i);
+      if i <= pdf.numPages then return pdf.getPage(i)
       else i -= pdf.numPages
 
 

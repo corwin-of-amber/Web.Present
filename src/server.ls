@@ -48,9 +48,9 @@ class Server
 
 
   serve: (request, response) ->
-    #console.log(request)
+    console.log(request)
     #process.stderr.write("[server]  #{request.url}")
-    switch request.url
+    switch request.url.replace(/[?].*/, '')
     case "/" =>
       response
         ..writeHead 200, { 'Content-Type': 'text/html;charset=utf-8' } <<< NO_CACHE
