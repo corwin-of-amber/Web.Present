@@ -110,8 +110,11 @@ class PresenterUI
     | tool.has-class('laser') =>
       for trend in ['left', 'right']
         @overlay.remove-annotations "finger-#{trend}"
-      trend = if ui.overlay.normx(x) > 0.3 then 'left' else 'right'
-      @overlay.add-annotation x, y, ["finger-#{trend}"], gesture.angle
+      if (a = gesture.angle)?
+        [trend, d] = if -1.6 < a < 1.6 then ['left', 0] else ['right', 3.14]
+      else
+        trend = if ui.overlay.normx(x) > 0.3 then 'left' else 'right'
+      @overlay.add-annotation x, y, ["finger-#{trend}"], a + d
     | tool.has-class('marker') =>
       @overlay.add-annotation x, y, ['centered', 'star']
 
@@ -138,7 +141,7 @@ Annotate =     # mixin
       if ! @use-touch
         if gesture.start?
           @apply-tool gesture
-          gesture.start = undefined
+          gesture.start = gesture.angle = undefined
 
     # For mobile clients, use touchstart
     # NOTICE Unlike mouse events, touch events always carry
