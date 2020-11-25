@@ -1,10 +1,7 @@
 {EventEmitter} = require 'events'
 
-# Required PDFJS configuration 
-# (for correct rendering of Unicode characters)
-# see https://github.com/mozilla/pdf.js/issues/9495
-PDFJS.cMapUrl = '../node_modules/pdfjs-dist/cmaps/'
-PDFJS.cMapPacked = true
+# yeah...
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.js'
 
 
 
@@ -13,25 +10,27 @@ class ViewerCore extends EventEmitter
   (@pdf, @containing-element ? $('body')) ->
     super!
     @canvas = {}
-    @canvas[1] = @render-page(1)
+    #@canvas[1] = @render-page(1)
     @selected-page = undefined
     @resolution = 2
 
   render-page: (page-num) ->
     canvas = $('<canvas>')
     @pdf.getPage(page-num).then (page) ~>
-      viewport = page.getViewport(1)
+      viewport = page.getViewport({scale: 1})  # get base size of page
       @get-display-size!
         scale = Math.min(..height / viewport.height, ..width / viewport.width)
-      viewport = page.getViewport(scale * @resolution)
-      canvas.0.width = viewport.width ; canvas.0.height = viewport.height
-      canvas.0.style.width = viewport.width / @resolution
+      scale = scale * @resolution
+      viewport = page.getViewport({scale})
+      canvas.0
+        ..width = viewport.width ; ..height = viewport.height
+        ..style.width = "#{viewport.width / @resolution}px"
       ctx = canvas.0.getContext('2d')
 
       page.render do
         canvasContext: ctx
         viewport: viewport
-      .then ~>
+      .promise.then ~>
         canvas
   
   get-display-size: ->
@@ -207,9 +206,12 @@ viewer = undefined
 
 Viewer.open = (uris) ->>
   viewer?emit 'close'
+
   if !Array.isArray(uris) then uris = [uris]
-  pdfs = await Promise.all([PDFJS.getDocument(..) for uris])
+  pdfs = await Promise.all([pdfjsLib.getDocument(..).promise for uris])
   viewer := new Viewer(new MultiPDF(pdfs))
+  window.viewer = viewer
+  viewer
     ..annotate-start!
     ..nav-bind-ui!
     ..prepare-slide-index!
