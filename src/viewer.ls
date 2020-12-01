@@ -1,5 +1,11 @@
 {EventEmitter} = require 'events'
 
+# Required PDFJS configuration
+# (for correct rendering of Unicode characters)
+# see https://github.com/mozilla/pdf.js/issues/9495
+PDFJS_CMAP_CONFIG =
+  cMapUrl: '../node_modules/pdfjs-dist/cmaps/'
+  cMapPacked: true
 # yeah...
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.js'
 
@@ -208,7 +214,8 @@ Viewer.open = (uris) ->>
   viewer?emit 'close'
 
   if !Array.isArray(uris) then uris = [uris]
-  pdfs = await Promise.all([pdfjsLib.getDocument(..).promise for uris])
+  load = (url) -> pdfjsLib.getDocument({url, ...PDFJS_CMAP_CONFIG})
+  pdfs = await Promise.all([load(..).promise for uris])
   viewer := new Viewer(new MultiPDF(pdfs))
   window.viewer = viewer
   viewer
