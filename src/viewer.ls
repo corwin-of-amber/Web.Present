@@ -59,10 +59,12 @@ class ViewerCore extends EventEmitter
 
   toggle-fullscreen: -> nw.Window.get!
     if ..isFullscreen then ..leaveFullscreen! else ..enterFullscreen!
+    @refresh!
   
   toggle-windowed-present: ->
     $ 'body' .toggle-class 'fullscreen'
       if ..has-class 'fullscreen' then hide-menu! else show-menu!
+    @refresh!
 
 
   set-sled: (flag) ->
@@ -203,9 +205,21 @@ AppletIntegration =   # mixin
     applet.set-visible @applet-active
 
 
+CycleAnimation =      # mixin
+  cycle-through: (page-indexes) ->>
+    delay = (ms) -> new Promise(-> setTimeout(it, ms))
+    while true
+      for i in page-indexes
+        @goto-page i
+        await delay(500)
+        if @selected-page != i then return  # abort
+      await delay(2000)
+      if @selected-page != i then return  # abort
+
+
 class Viewer extends ViewerCore
 
-Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce <<<< AppletIntegration
+Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce <<<< AppletIntegration <<<< CycleAnimation
 
 
 viewer = undefined
