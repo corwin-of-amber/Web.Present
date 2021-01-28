@@ -82,6 +82,7 @@ SlideIndex =   # mixin
     pages = [[i, @pdf.getPage(i)] for i from 1 to @pdf.numPages]
     slide-index = []
     slide-offset = 0
+    trace = @_slide-index-trace = []
     pages.reduce (promise, [idx, page]) ->
       promise.then (prev) -> page.then (page) ->
         page.getTextContent!then ({items: text-items}) ->
@@ -93,10 +94,11 @@ SlideIndex =   # mixin
           else if new-witnesses.length || !restart-witnesses.length
             slide-num = prev.slide-num + 1
           else
-            slide-num = 1; slide-offset := prev.slide-num
+            slide-num = 1; slide-offset := prev.slide-num + slide-offset
             new-witnesses = restart-witnesses
           possible-captions = if old-witnesses.length then old-witnesses else new-witnesses
           slide-index[idx] = slide-num + slide-offset
+          trace.push {idx, page, slide-num, slide-offset, old-witnesses, new-witnesses, restart-witnesses}
           {slide-num, possible-captions}
     , Promise.resolve slide-num: 0, possible-captions: []
     .then ~> @slide-index = slide-index
@@ -205,7 +207,7 @@ AppletIntegration =   # mixin
     applet.set-visible @applet-active
 
 
-CycleAnimation =      # mixin
+Animations =        # mixin
   cycle-through: (page-indexes) ->>
     delay = (ms) -> new Promise(-> setTimeout(it, ms))
     while true
@@ -216,10 +218,19 @@ CycleAnimation =      # mixin
       await delay(2000)
       if @selected-page != i then return  # abort
 
+  fast-forward: (to-page) ->>
+    delay = (ms) -> new Promise(-> setTimeout(it, ms))
+    i = @selected-page
+    while i < to-page
+      i += 1
+      await @goto-page i
+      await delay(10)
+      if @selected-page != i then return  # abort
+
 
 class Viewer extends ViewerCore
 
-Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce <<<< AppletIntegration <<<< CycleAnimation
+Viewer.prototype <<<< SlideIndex <<<< Nav <<<< Annotate <<<< Announce <<<< AppletIntegration <<<< Animations
 
 
 viewer = undefined
