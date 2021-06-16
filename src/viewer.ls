@@ -16,7 +16,6 @@ class ViewerCore extends EventEmitter
   (@pdf, @containing-element ? $('body')) ->
     super!
     @canvas = {}
-    #@canvas[1] = @render-page(1)
     @selected-page = undefined
     @resolution = 2
 
@@ -239,7 +238,7 @@ Viewer.open = (uris) ->>
   viewer?emit 'close'
 
   if !Array.isArray(uris) then uris = [uris]
-  load = (url) -> pdfjsLib.getDocument({url, ...PDFJS_CMAP_CONFIG})
+  load = (url) -> pdfjsLib.getDocument({url: good-url(url), ...PDFJS_CMAP_CONFIG})
   pdfs = await Promise.all([load(..).promise for uris])
   viewer := new Viewer(new MultiPDF(pdfs))
   window.viewer = viewer
@@ -256,6 +255,14 @@ Viewer.open = (uris) ->>
   localStorage.last-uri = uris.join(';')
 
   export viewer
+
+
+good-url = (url) ->   # for NWjs  https://github.com/nwjs/nw.js/issues/7509
+  mo = url.match(/file:\/\/(.*)/)
+  if mo?
+    require! fs
+    url = URL.createObjectURL(new Blob([fs.readFileSync(mo.1)]))
+  url
 
 
 class MultiPDF
