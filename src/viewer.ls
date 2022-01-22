@@ -35,6 +35,7 @@ class ViewerCore extends EventEmitter
       page.render do
         canvasContext: ctx
         viewport: viewport
+        intent: 'print'  # prevent stalling when used as server
       .promise.then ~>
         canvas
   
