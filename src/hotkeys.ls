@@ -1,18 +1,19 @@
 # For Microsoft Surface Pen
 
-mode = "internal"
+sp = new URLSearchParams(location.search)
+mode = sp.get('hotkeys') ? "internal"
 
 
 if mode == "external"
   /*
    * use the following code to control PowerPoint or Keynote
    */
-  robot = require 'robotjs'
+  nutjs = require '@nut-tree/nut-js'
 
   hotkeys =
-    "Command+F20": -> robot.keyTap "right"
-    "Command+F19": -> robot.keyTap "left"
-    "Command+F18": -> robot.keyTap "left"
+    "Command+F20": -> nutjs.keyboard.pressKey nutjs.Key.Right
+    "Command+F19": -> nutjs.keyboard.pressKey nutjs.Key.Left
+    "Command+F18": -> nutjs.keyboard.pressKey nutjs.Key.Left
 
 else if mode == "internal"
   /*
